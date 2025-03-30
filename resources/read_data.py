@@ -6,24 +6,27 @@ def process_chunk(chunk):
     chunk.columns = [col.lower() for col in chunk.columns]  # Example transformation
     return chunk
 
-def read_large_csv_hdf5(input_csv, output_hdf5, chunk_size):
-    """Read large CSV in chunks and save as an optimized HDF5 file."""
-    store = pd.HDFStore(output_hdf5, mode='w', complevel=9, complib='blosc')  # High compression
+def read_large_csv_parquet(input_csv, output_parquet, chunk_size):
+    """Read large CSV in chunks and save as a processed Parquet file."""
+    processed_data = []
 
-    for i, chunk in enumerate(pd.read_csv(input_csv, chunksize=chunk_size, delimiter=';')):
+    # Read and process the CSV file in chunks
+    for chunk in pd.read_csv(input_csv, chunksize=chunk_size):
         chunk = process_chunk(chunk)
+        processed_data.append(chunk)
 
-        # Append to HDF5 file
-        store.append('data', chunk, format='table', data_columns=True)
-
-    store.close()
-    print(f"File saved as {output_hdf5}")
+    # Combine all chunks into a single DataFrame
+    final_df = pd.concat(processed_data, ignore_index=True)
+    
+    # Save the processed DataFrame to Parquet
+    final_df.to_parquet(output_parquet, compression='snappy')  # Save with Snappy compression
+    print(f"File saved as {output_parquet}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process large CSV to HDF5 format.")
+    parser = argparse.ArgumentParser(description="Process large CSV to Parquet format.")
     parser.add_argument("--input", type=str, required=True, help="Path to input CSV file")
-    parser.add_argument("--output", type=str, required=True, help="Path to output HDF5 file")
-    parser.add_argument("--chunk_size", type=int, default=100000, help="Chunk size for processing")
+    parser.add_argument("--output", type=str, required=True, help="Path to output Parquet file")
+    parser.add_argument("--chunk_size", type=int, default=500000, help="Chunk size for processing")
     
     args = parser.parse_args()
-    read_large_csv_hdf5(args.input, args.output, args.chunk_size)
+    read_large_csv_parquet(args.input, args.output, args.chunk_size)

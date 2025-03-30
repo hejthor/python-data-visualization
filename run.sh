@@ -1,51 +1,51 @@
 #!/bin/bash
 
-# Define virtual environment path inside /output
+echo "[TERMINAL] Define virtual environment path inside /output"
 VENV_DIR="output/venv"
 
-# Check if /output exists, if not, create it
+echo "[TERMINAL] Check if /output exists, if not, create it"
 if [ ! -d "output" ]; then
     mkdir -p output
 fi
 
-# Check if virtual environment exists, if not, create it
+echo "[TERMINAL] Check if virtual environment exists, if not, create it"
 if [ ! -d "$VENV_DIR" ]; then
     python3 -m venv $VENV_DIR
-    echo "Virtual environment created at $VENV_DIR"
+    echo "[TERMINAL] Virtual environment created at $VENV_DIR"
 fi
 
-# Activate the virtual environment
+echo "[TERMINAL] Activate the virtual environment"
 source $VENV_DIR/bin/activate
 
-# Upgrade pip to avoid warnings
+echo "[TERMINAL] Upgrade pip to avoid warnings"
 pip install --upgrade pip
 
-# Install dependencies
+echo "[TERMINAL] Install dependencies"
 pip install -r resources/requirements.txt
 
-# Check if the data.csv exists in the output folder, if not, generate it
+echo "[TERMINAL] Check if the data.csv exists in the output folder, if not, generate it"
 if [ ! -f "output/data.csv" ]; then
-    echo "output/data.csv not found. Generating sample data..."
+    echo "[TERMINAL] output/data.csv not found. Generating sample data..."
     python3 resources/generate_data.py
 else
-    echo "output/data.csv already exists. Skipping data generation."
+    echo "[TERMINAL] output/data.csv already exists. Skipping data generation."
 fi
 
-# Check if the HDF5 file already exists
-if [ ! -f "output/data.h5" ]; then
-    # Run the Python script to process large CSV to HDF5
+echo "[TERMINAL] Check if the processed Parquet file already exists"
+if [ ! -f "output/data.parquet" ]; then
+    echo "[TERMINAL] Run the Python script to read CSV and convert it to Parquet"
     python3 resources/read_data.py \
         --input output/data.csv \
-        --output output/data.h5 \
-        --chunk_size 50000
+        --output output/data.parquet \
+        --chunk_size 500000
 else
-    echo "output/data.h5 already exists. Skipping CSV processing."
+    echo "[TERMINAL] output/data.parquet already exists. Skipping conversion to Parquet."
 fi
 
-# Run the visualization script
+echo "[TERMINAL] Run the visualization script"
 python3 resources/visualize_data.py \
-    --hdf5_file output/data.h5 \
-    --output_image output/graph.png
+    --input_parquet output/data.parquet \
+    --output_dir output
 
-# Deactivate the virtual environment
+echo "[TERMINAL] Deactivate the virtual environment"
 deactivate
