@@ -4,7 +4,7 @@ import os
 import random
 from datetime import datetime, timedelta
 
-def generate_sample_data(output_path, num_rows=7000000):
+def generate_sample_data(output_path, num_rows=10000000):
     """Generate a meaningful dataset with car models and speed measurements."""
     
     # Create the output folder if it doesn't exist
@@ -35,9 +35,9 @@ def generate_sample_data(output_path, num_rows=7000000):
     
     df = pd.DataFrame(data)
     
-    # Save the dataframe to Parquet in the output folder
-    output_file = os.path.join(output_path, 'data.parquet')
-    df.to_parquet(output_file, index=False)
+    # Save the dataframe to CSV in the output folder
+    output_file = os.path.join(output_path, 'data.csv')
+    df.to_csv(output_file, index=False)
     print(f"Generated sample data and saved to {output_file}")
 
 if __name__ == "__main__":
